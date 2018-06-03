@@ -12,7 +12,8 @@ class App extends Component {
       loading: false,
       page: 1,
       darkMode: false,
-      idle: true
+      idle: true,
+      autoRefresh: true
     }
 
     // we want to turn this off so the page doesn't accidentally autoscroll to the end and then instantly load more tweets
@@ -30,7 +31,7 @@ class App extends Component {
     // handle auto updating
     window.addEventListener('scroll', this.handleScroll.bind(this))
     this.refreshInterval = setInterval(() => {
-      if(this.state.idle){
+      if(this.state.idle && this.state.autoRefresh){
         console.log('auto updating', this)
         this.fetchNewTweetsAndClear()
         window.scrollTo(0,0)
@@ -61,7 +62,7 @@ class App extends Component {
     axios.get('https://api.fbnews.ml/tweets?size=3&page='+pageToLoad).then((res) => {
       if(res.data.length){
         this.setState({tweets: this.state.tweets.concat(res.data), page: pageToLoad})
-        // it takes some time for the tweets to fully render so we don't want to span new tweets while they load. Unfortunately because all the tweets load in iframes using twitter's custom js, it's tough to check whether the tweets are fully rendered, so instead we just set 1.5 seconds as the min interval between fetches
+        // it takes some time for the tweets to fully render so we don't want to spam new tweets while they load. Unfortunately because all the tweets load in iframes using twitter's custom js, it's tough to check whether the tweets are fully rendered, so instead we just set 1.5 seconds as the min interval between fetches
         setTimeout(() => {
           this.setState({loading: false})
         }, 1500)
@@ -76,8 +77,11 @@ class App extends Component {
   }
   render() {
     return (<div className={'container' + (this.state.darkMode === true ? ' dark-mode' : '')}>
-    <div className='dark-mode-block'>Dark Mode <input type='checkbox' onClick={(e) => {this.setState({darkMode: e.target.checked})}}></input></div>
-    <div className='header-block'><h1>Football News Reader</h1><h2>Daily Tweets About Football</h2></div>
+    <div className='dark-mode-block'>
+      <div>Dark Mode <input type='checkbox' checked={this.state.darkMode} onChange={(e) => {this.setState({darkMode: e.target.checked})}}></input></div>
+      <div>Auto Refresh <input type='checkbox' checked={this.state.autoRefresh} onChange={(e) => {this.setState({autoRefresh: e.target.checked})}}></input></div>
+    </div>
+    <div className='header-block'><h1>Football News Reader</h1><h2>Tweets About Football</h2></div>
       <div className='tweet-container'>{this.state.tweets.map((t) => <TweetEmbed tId={t.tweet_id} key={t._id} dark={this.state.darkMode}/>)}</div>
       <div className='bottom-msg'>{this.state.end ? 'No More Tweets' : <span className="star spin">★</span>}</div> 
     </div>

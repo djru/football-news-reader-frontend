@@ -60,15 +60,17 @@ justify-content: center;
 h2 {
   font-size: 1.3em;
   margin-top: 0;
+  padding-left: 5px;
 }
 h1 {
   font-size: 6em;
   margin-bottom: 5px;
+  line-height: .9em;
 }
 
 .container.dark-mode {
 
-  background: #231869;
+  background: #282633;
   color: #efefef;
 
 }
