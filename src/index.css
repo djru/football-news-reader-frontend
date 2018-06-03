@@ -1,0 +1,87 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+@keyframes spin{
+  0%{opacity:0;transform: rotate(0deg);}
+  50%{opacity:1;transform: rotate(180deg);}
+  100%{opacity: 0;transform: rotate(360deg);}
+}
+
+.spin{
+  animation-name: spin;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.glow{
+  animation-name: glow;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+}
+
+.star{
+  font-size: 1.5em;
+  display: inline-block;
+}
+
+
+.bottom-msg{
+  text-align:center;
+  font-size: 2em;
+  color: red;
+  margin: 35px 0;
+}
+
+.app{
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+}
+
+.center-block{
+  display: inline-block;
+  display: flex;
+align-content: center;
+justify-content: center;
+}
+
+.header-block{
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  margin: 0 auto;
+}
+
+h2 {
+  font-size: 1.3em;
+  margin-top: 0;
+}
+h1 {
+  font-size: 6em;
+  margin-bottom: 5px;
+}
+
+.container.dark-mode {
+
+  background: #231869;
+  color: #efefef;
+
+}
+
+.hidden{
+  display: none !important;
+}
+
+.dark-mode-block {
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  font-family: monospace;
+
+}
