@@ -5,7 +5,6 @@ import './App.css'
 class App extends Component {
   constructor(props){
     super(props)
-    console.log(window.localStorage.getItem('autoRefresh'))
     this.state = {
       tweets: [],
       users: {},
@@ -18,7 +17,6 @@ class App extends Component {
       autoRefresh: window.localStorage.getItem('autoRefresh') === 'true' || false
     }
 
-    console.log(this.state)
     // we want to turn this off so the page doesn't accidentally autoscroll to the end and then instantly load more tweets
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
@@ -89,7 +87,6 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state)
     return (<div className={'container' + (this.state.darkMode === true ? ' dark-mode' : '')}>
     <div className='dark-mode-block'>
       <div>Dark Mode <input type='checkbox' checked={this.state.darkMode} onChange={(e) => {this.updateSettings('darkMode', e.target.checked)}}></input></div>
@@ -106,7 +103,6 @@ class App extends Component {
 
 class TweetEmbed extends Component{
   render(){
-    console.log(this.props.darkMode)
     return (<div className='center-block tweet' id={this.props.tId}></div>)
   }
   renderTweet(id){
