@@ -5,26 +5,28 @@ import './App.css'
 class App extends Component {
   constructor(props){
     super(props)
+    console.log(window.localStorage.getItem('autoRefresh'))
     this.state = {
       tweets: [],
       users: {},
       end: false,
       loading: false,
       page: 1,
-      darkMode: false,
+      // certain browsers only store localstorage as strings, so we have to check this
+      darkMode:  window.localStorage.getItem('darkMode') === 'true' || false,
       idle: true,
-      autoRefresh: true
+      autoRefresh: window.localStorage.getItem('autoRefresh') === 'true' || false
     }
 
+    console.log(this.state)
     // we want to turn this off so the page doesn't accidentally autoscroll to the end and then instantly load more tweets
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
 
     // don't have a great place to put this so I'm putting it here
-    this.scrollDebouncer =  _.debounce(() => {console.log('entering idle'); this.setState({idle: true})}, 1000*60)
+    this.idleDebouncer =  _.debounce(() => {console.log('entering idle'); this.setState({idle: true})}, 1000*6)
   }
-
   componentDidMount(){
     this.fetchNewTweetsAndClear()
 
@@ -36,7 +38,7 @@ class App extends Component {
         this.fetchNewTweetsAndClear()
         window.scrollTo(0,0)
       }
-    }, 1000*60*5)
+    }, 1000*20)
   }
   handleScroll(){
     // if we are at the bottom of the page, load more tweets
@@ -50,7 +52,7 @@ class App extends Component {
       this.setState({idle: false})
     }
     // if they don't scroll for a minute, enter idle
-   this.scrollDebouncer()
+   this.idleDebouncer()
   }
 
   // helper function to determine if the window at the bottom of the screen
@@ -62,10 +64,10 @@ class App extends Component {
     axios.get('https://api.fbnews.ml/tweets?size=3&page='+pageToLoad).then((res) => {
       if(res.data.length){
         this.setState({tweets: this.state.tweets.concat(res.data), page: pageToLoad})
-        // it takes some time for the tweets to fully render so we don't want to spam new tweets while they load. Unfortunately because all the tweets load in iframes using twitter's custom js, it's tough to check whether the tweets are fully rendered, so instead we just set 1.5 seconds as the min interval between fetches
+        // it takes some time for the tweets to fully render so we don't want to spam new tweets while they load. Unfortunately because all the tweets load in iframes using twitter's custom js, it's tough to check whether the tweets are fully rendered, so instead we just set .5 seconds as the min interval between fetches
         setTimeout(() => {
           this.setState({loading: false})
-        }, 1500)
+        }, 500)
       }
       else{this.setState({loading: false, end: true, page: pageToLoad})}
     })
@@ -75,14 +77,26 @@ class App extends Component {
       this.setState({tweets: res.data, loading: false, page: 1})
     })
   }
+
+  updateSettings(field, val){
+    this.setState({[field]: val})
+    window.localStorage.setItem(field, val)
+
+    // if the mode changes, refresh with tweets in the updated color scheme
+    if(field === 'darkMode'){
+      this.fetchNewTweetsAndClear()
+    }
+  }
+
   render() {
+    console.log(this.state)
     return (<div className={'container' + (this.state.darkMode === true ? ' dark-mode' : '')}>
     <div className='dark-mode-block'>
-      <div>Dark Mode <input type='checkbox' checked={this.state.darkMode} onChange={(e) => {this.setState({darkMode: e.target.checked})}}></input></div>
-      <div>Auto Refresh <input type='checkbox' checked={this.state.autoRefresh} onChange={(e) => {this.setState({autoRefresh: e.target.checked})}}></input></div>
+      <div>Dark Mode <input type='checkbox' checked={this.state.darkMode} onChange={(e) => {this.updateSettings('darkMode', e.target.checked)}}></input></div>
+      <div>Auto Refresh <input type='checkbox' checked={this.state.autoRefresh} onChange={(e) => {this.updateSettings('autoRefresh', e.target.checked)}}></input></div>
     </div>
     <div className='header-block'><h1>Football News Reader</h1><h2>Tweets About Football</h2></div>
-      <div className='tweet-container'>{this.state.tweets.map((t) => <TweetEmbed tId={t.tweet_id} key={t._id} dark={this.state.darkMode}/>)}</div>
+      <div className='tweet-container'>{this.state.tweets.map((t) => <TweetEmbed tId={t.tweet_id} key={t._id + this.state.darkMode} darkMode={this.state.darkMode}/>)}</div>
       <div className='bottom-msg'>{this.state.end ? 'No More Tweets' : <span className="star spin">★</span>}</div> 
     </div>
       
@@ -91,31 +105,17 @@ class App extends Component {
 }
 
 class TweetEmbed extends Component{
-  constructor(props){
-    super(props)
-    this.state = {dark: this.props.dark || false, tweet_id: props.tId}
-  }
   render(){
+    console.log(this.props.darkMode)
     return (<div className='center-block tweet' id={this.props.tId}></div>)
-  }
-  componentWillReceiveProps(nextProps){
-    // if dark mode is toggled, rerender everything
-    if(this.props.dark !== nextProps.dark){
-      this.setState({dark: nextProps.dark})
-      this.clearAndReRenderTweet(this.state.tweet_id)
-    }
-  }
-  clearAndReRenderTweet(id){
-    document.getElementById(id).innerHTML = ''
-    this.renderTweet(id)
   }
   renderTweet(id){
     window.twttr.ready(() => {
-      window.twttr.widgets.createTweet(id,document.getElementById(id), {width: 500, theme: (this.state.dark ? 'dark' : 'light')})
+      window.twttr.widgets.createTweet(this.props.tId,document.getElementById(this.props.tId), {width: 500, theme: (this.props.darkMode ? 'dark' : 'light')})
     })
   }
-  componentWillMount(){
-    this.renderTweet(this.state.tweet_id)
+  componentDidMount(){
+    this.renderTweet(this.props.tId)
   }
 
 }
