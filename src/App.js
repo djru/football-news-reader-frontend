@@ -12,13 +12,14 @@ const minute = 1000*60
 class App extends Component {
   constructor(props){
     super(props)
+    console.log(this.props)
     // we want to turn this off so the page doesn't accidentally autoscroll to the end and then instantly load more tweets
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
 
     // don't have a great place to put this so I'm putting it here
-    this.idleDebouncer =  _.debounce(() => {this.props.store.dispatch({type: ACTIONS.SET_IDLE, data: true})}, minute)
+    this.idleDebouncer =  _.debounce(() => {this.props.dispatch({type: ACTIONS.SET_IDLE, data: true})}, minute)
   }
   componentDidMount(){
     this.fetchNewTweetsAndClear()
@@ -41,7 +42,7 @@ class App extends Component {
     }
     // set idle to false because they scrolled
     if(this.props.scrollState.idle){
-      this.props.store.dispatch({type: ACTIONS.SET_IDLE, data: false})
+      this.props.dispatch({type: ACTIONS.SET_IDLE, data: false})
     }
     // if they don't scroll for a minute, enter idle
    this.idleDebouncer()
@@ -52,26 +53,26 @@ class App extends Component {
     return !this.props.scrollState.loading && !this.props.scrollState.end && window.innerHeight + window.scrollY >= document.body.offsetHeight
   }
   fetchNextPageOfTweets(pageToLoad){
-    this.props.store.dispatch({type: ACTIONS.SET_LOADING, data: true})
+    this.props.dispatch({type: ACTIONS.SET_LOADING, data: true})
     axios.get('https://api.fbnews.ml/tweets?size=3&page='+pageToLoad).then((res) => {
       if(res.data.length){
-        this.props.store.dispatch({type: ACTIONS.PUSH_NEW_TWEETS, data: res.data})
-        this.props.store.dispatch({type: ACTIONS.SET_PAGE, data: pageToLoad})
+        this.props.dispatch({type: ACTIONS.PUSH_NEW_TWEETS, data: res.data})
+        this.props.dispatch({type: ACTIONS.SET_PAGE, data: pageToLoad})
         // it takes some time for the tweets to fully render so we don't want to spam new tweets while they load. Unfortunately because all the tweets load in iframes using twitter's custom js, it's tough to check whether the tweets are fully rendered, so instead we just set .5 seconds as the min interval between fetches
         setTimeout(() => {
-          this.props.store.dispatch({type: ACTIONS.SET_LOADING, data: false})
+          this.props.dispatch({type: ACTIONS.SET_LOADING, data: false})
         }, 500)
       }
       else{
-        this.props.store.dispatch({type: ACTIONS.SET_END, data: true})
+        this.props.dispatch({type: ACTIONS.SET_END, data: true})
       }
     })
   }
   fetchNewTweetsAndClear(){
     axios.get('https://api.fbnews.ml/tweets?size=3').then((res) => {
-      this.props.store.dispatch({type: ACTIONS.RESET_TWEETS, data: res.data})
-      this.props.store.dispatch({type: ACTIONS.SET_PAGE, data: 1})
-      this.props.store.dispatch({type: ACTIONS.SET_LOADING, data: false})
+      this.props.dispatch({type: ACTIONS.RESET_TWEETS, data: res.data})
+      this.props.dispatch({type: ACTIONS.SET_PAGE, data: 1})
+      this.props.dispatch({type: ACTIONS.SET_LOADING, data: false})
     })
   }
 
@@ -80,10 +81,10 @@ class App extends Component {
 
     // if the mode changes, refresh with tweets in the updated color scheme
     if(field === 'darkMode'){
-      this.props.store.dispatch({type: ACTIONS.TOGGLE_DARK_MODE, data: val})
+      this.props.dispatch({type: ACTIONS.TOGGLE_DARK_MODE, data: val})
     }
     else if(field === 'autoRefresh'){
-      this.props.store.dispatch({type: ACTIONS.TOGGLE_AUTO_REFRESH, data: val})
+      this.props.dispatch({type: ACTIONS.TOGGLE_AUTO_REFRESH, data: val})
     }
   }
 
