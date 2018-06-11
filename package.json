@@ -11,6 +11,10 @@
     "react-twitter-widgets": "^1.7.1",
     "redux": "^4.0.0"
   },
+  "devDependencies": {
+    "eslint-plugin-prettier": "^2.6.0",
+    "prettier": "^1.13.5"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
